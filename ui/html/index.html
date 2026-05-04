@@ -2,83 +2,72 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Ремонт Сервис</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://unpkg.com/htmx.org@1.9.10"></script>
+    <title>Repair CRM</title>
+    <style>
+        body { font-family: sans-serif; margin: 40px; line-height: 1.6; }
+        form { background: #f4f4f4; padding: 20px; border-radius: 8px; max-width: 400px; }
+        div { margin-bottom: 10px; }
+        label { display: block; }
+        input, textarea { width: 100%; padding: 8px; box-sizing: border-box; }
+        button { background: #007bff; color: white; padding: 10px; border: none; border-radius: 4px; cursor: pointer; }
+        .order-card { border: 1px solid #ddd; padding: 10px; margin-top: 10px; border-radius: 4px; }
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+        th, td { text-align: left; padding: 12px; border-bottom: 1px solid #ddd; }
+        tr:hover { background-color: #f5f5f5; }
+    </style>
 </head>
-<body class="bg-gray-50 font-sans">
-    <nav class="bg-slate-800 p-4 text-white shadow-md">
-        <div class="container mx-auto">
-            <h1 class="text-xl font-bold tracking-tight">REPAIR.CRM</h1>
-        </div>
-    </nav>
+<body>
+    <h1>Учет заказов</h1>
 
-    <main class="container mx-auto mt-6 px-4 pb-12">
-        <!-- Блок добавления -->
-        <section class="bg-white p-6 rounded-xl shadow-sm border border-gray-200 mb-8">
-            <h2 class="text-lg font-bold mb-4 text-gray-700">Новый заказ</h2>
-            <form hx-post="/orders/create" class="grid grid-cols-1 md:grid-cols-4 gap-4">
-                <input type="text" name="device_name" placeholder="Что чиним?" required
-                    class="p-2.5 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none">
-                <input type="text" name="customer_fio" placeholder="Имя клиента" required
-                    class="p-2.5 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none">
-                <input type="text" name="customer_phone" placeholder="Телефон" 
-                    class="p-2.5 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none">
-                <button type="submit" class="bg-blue-600 text-white font-bold py-2.5 rounded-lg hover:bg-blue-700 transition">
-                    Принять
-                </button>
-            </form>
-        </section>
-
-        <!-- Список заказов -->
-        <h2 class="text-xl font-bold mb-4 text-gray-800">Текущие ремонты</h2>
-        
-        <!-- Десктопная таблица -->
-        <div class="hidden md:block bg-white shadow-sm border border-gray-200 rounded-xl overflow-hidden">
-            <table class="w-full text-left border-collapse">
-                <thead class="bg-gray-50 border-b border-gray-200">
-                    <tr>
-                        <th class="p-4 font-semibold text-gray-600">ID</th>
-                        <th class="p-4 font-semibold text-gray-600">Устройство</th>
-                        <th class="p-4 font-semibold text-gray-600">Клиент</th>
-                        <th class="p-4 font-semibold text-gray-600">Статус</th>
-                    </tr>
-                </thead>
-                <tbody class="divide-y divide-gray-100">
-                    {{range .}}
-                    <tr class="hover:bg-gray-50">
-                        <td class="p-4 text-gray-500">#{{.ID}}</td>
-                        <td class="p-4 font-medium">{{.DeviceName}}</td>
-                        <td class="p-4 text-gray-700">{{.CustomerFIO}}</td>
-                        <td class="p-4">
-                            <span class="bg-yellow-100 text-yellow-800 px-2.5 py-1 rounded-full text-xs font-medium">
-                                {{.Status}}
-                            </span>
-                        </td>
-                    </tr>
-                    {{else}}
-                    <tr><td colspan="4" class="p-8 text-center text-gray-400">Заказов пока нет</td></tr>
-                    {{end}}
-                </tbody>
-            </table>
+    <!-- Форма создания заказа -->
+    <form action="/order/create" method="POST">
+        <div>
+            <label>Имя клиента</label>
+            <input type="text" name="customer_name" required>
         </div>
-
-        <!-- Мобильный вид (карточки) -->
-        <div class="md:hidden space-y-4">
-            {{range .}}
-            <div class="bg-white p-4 rounded-xl shadow-sm border border-gray-200">
-                <div class="flex justify-between items-start mb-2">
-                    <span class="text-xs font-bold text-blue-600 uppercase">Заказ #{{.ID}}</span>
-                    <span class="bg-yellow-100 text-yellow-800 px-2 py-0.5 rounded text-xs">{{.Status}}</span>
-                </div>
-                <h3 class="font-bold text-lg">{{.DeviceName}}</h3>
-                <p class="text-gray-600 text-sm mt-1">{{.CustomerFIO}}</p>
-            </div>
-            {{else}}
-            <p class="text-center text-gray-400 py-10">Список пуст</p>
-            {{end}}
+        <div>
+            <label>Устройство</label>
+            <input type="text" name="device_name" required>
         </div>
-    </main>
+        <div>
+            <label>Описание поломки</label>
+            <textarea name="description" required></textarea>
+        </div>
+        <button type="submit">Создать заказ</button>
+    </form>
+
+    <hr>
+
+    <h2>Последние заказы</h2>
+    {{if .}}
+        <table>
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Клиент</th>
+                    <th>Устройство</th>
+                    <th>Статус</th>
+                    <th>Дата</th>
+                </tr>
+            </thead>
+            <tbody>
+                {{range .}}
+                <tr>
+                    <td>#{{.ID}}</td>
+                    <td>{{.CustomerName}}</td>
+                    <td>{{.DeviceName}}</td>
+                    <td><b>{{.Status}}</b></td>
+                    <td>{{.CreatedAt.Format "02.01.2006 15:04"}}</td>
+                    <td>
+                        <a href="/order/status?id={{.ID}}&status=в работе">В работу</a> | 
+                        <a href="/order/status?id={{.ID}}&status=завершен">Завершить</a>
+                    </td>
+                </tr>
+                {{end}}
+            </tbody>
+        </table>
+    {{else}}
+        <p>Заказов пока нет.</p>
+    {{end}}
 </body>
 </html>
