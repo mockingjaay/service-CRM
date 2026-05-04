@@ -1,0 +1,109 @@
+:root {
+    --bg: #f8f9fa;
+    --sidebar-bg: #1e2125;
+    --accent: #d4a271;
+    --card-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+    --text-main: #333;
+}
+
+body {
+    font-family: 'Inter', sans-serif;
+    background-color: var(--bg);
+    color: var(--text-main);
+    overflow-x: hidden;
+}
+
+.wrapper { display: flex; width: 100%; align-items: stretch; }
+
+/* Sidebar */
+#sidebar {
+    min-width: 260px;
+    max-width: 260px;
+    background: var(--sidebar-bg);
+    color: #fff;
+    transition: all 0.3s;
+    min-height: 100vh;
+    z-index: 1000;
+}
+
+#sidebar.active { margin-left: -260px; }
+
+#sidebar .sidebar-header {
+    padding: 25px;
+    background: #15171a;
+    font-size: 1.2rem;
+    letter-spacing: 1px;
+}
+
+#sidebar ul li a {
+    padding: 15px 25px;
+    display: block;
+    color: #adb5bd;
+    text-decoration: none;
+    transition: 0.2s;
+}
+
+#sidebar ul li a:hover, #sidebar ul li.active a {
+    color: #fff;
+    background: rgba(255,255,255,0.05);
+    border-left: 4px solid var(--accent);
+}
+
+/* Content */
+#content {
+    width: 100%;
+    min-height: 100vh;
+    transition: all 0.3s;
+}
+
+.navbar {
+    background: #fff;
+    padding: 15px 25px;
+    border-bottom: 1px solid #dee2e6;
+}
+
+.btn-toggle {
+    background: none;
+    border: 1px solid #dee2e6;
+    padding: 5px 12px;
+    border-radius: 6px;
+    cursor: pointer;
+}
+
+/* Cards */
+.custom-card {
+    border: none;
+    border-radius: 12px;
+    box-shadow: var(--card-shadow);
+}
+
+.btn-accent {
+    background: var(--accent);
+    color: #fff;
+    border: none;
+    font-weight: 500;
+}
+
+.btn-accent:hover { background: #bc8f62; color: #fff; }
+
+/* Statuses */
+.status-badge {
+    padding: 4px 10px;
+    border-radius: 6px;
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+}
+
+.status-новый { background: #e3f2fd; color: #0d6efd; }
+.status-в\ работе { background: #fff3e0; color: #fd7e14; }
+.status-завершен { background: #e8f5e9; color: #198754; }
+
+/* Actions */
+.btn-action {
+    background: #f8f9fa;
+    border: 1px solid #dee2e6;
+    margin-left: 4px;
+    transition: 0.2s;
+}
+.btn-action:hover { background: #e9ecef; }

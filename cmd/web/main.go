@@ -35,6 +35,9 @@ func main() {
 	r := chi.NewRouter()
 	r.Use(middleware.Logger) // Добавляет логирование запросов в консоль
 
+	fileServer := http.FileServer(http.Dir("./ui/static/"))
+	r.Handle("/static/*", http.StripPrefix("/static", fileServer))
+
 	// 4. Описываем маршруты (routes)
 	r.Get("/", app.homeHandler) // Показать главную с формой
 	r.Get("/order/status", app.updateStatusHandler)
