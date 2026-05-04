@@ -38,6 +38,7 @@ func main() {
 	// 4. Описываем маршруты (routes)
 	r.Get("/", app.homeHandler) // Показать главную с формой
 	r.Get("/order/status", app.updateStatusHandler)
+	r.Get("/order/delete", app.deleteOrderHandler)
 	r.Post("/order/create", app.createOrderHandler) // Обработать отправку формы
 
 	// 5. Запускаем сервер
@@ -49,15 +50,18 @@ func main() {
 }
 
 func (app *application) homeHandler(w http.ResponseWriter, r *http.Request) {
-	// 1. Достаем заказы из базы
-	orders, err := app.orders.Latest()
+	// Достаем параметры из ссылки (например, /?status=новый&search_id=5)
+	statusFilter := r.URL.Query().Get("status")
+	searchID := r.URL.Query().Get("search_id")
+
+	// Передаем эти фильтры в модель
+	orders, err := app.orders.Latest(statusFilter, searchID)
 	if err != nil {
 		log.Println(err)
 		http.Error(w, "Ошибка БД", 500)
 		return
 	}
 
-	// 2. Готовим шаблон
 	ts, err := template.ParseFiles("./ui/html/index.html")
 	if err != nil {
 		log.Println(err)
@@ -65,11 +69,10 @@ func (app *application) homeHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// 3. ПЕРЕДАЕМ заказы в шаблон (вместо nil пишем orders)
+	// Отправляем данные в шаблон
 	err = ts.Execute(w, orders)
 	if err != nil {
 		log.Println(err)
-		http.Error(w, "Ошибка отрисовки", 500)
 	}
 }
 
@@ -117,5 +120,22 @@ func (app *application) updateStatusHandler(w http.ResponseWriter, r *http.Reque
 	}
 
 	// Возвращаемся на главную
+	http.Redirect(w, r, "/", http.StatusSeeOther)
+}
+
+func (app *application) deleteOrderHandler(w http.ResponseWriter, r *http.Request) {
+	idStr := r.URL.Query().Get("id")
+	id, err := strconv.Atoi(idStr)
+	if err != nil {
+		http.Error(w, "Некорректный ID", 400)
+		return
+	}
+
+	err = app.orders.Delete(id)
+	if err != nil {
+		http.Error(w, "Ошибка удаления", 500)
+		return
+	}
+
 	http.Redirect(w, r, "/", http.StatusSeeOther)
 }

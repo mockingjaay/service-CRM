@@ -44,18 +44,32 @@ func (m *OrderModel) Get(id int) (*Order, error) {
 }
 
 // Latest возвращает последние 10 заказов
-func (m *OrderModel) Latest() ([]*Order, error) {
-	stmt := `SELECT id, customer_name, device_name, description, status, created_at FROM orders 
-    ORDER BY created_at DESC LIMIT 10`
+func (m *OrderModel) Latest(status string, searchID string) ([]*Order, error) {
+	// Базовый запрос
+	stmt := `SELECT id, customer_name, device_name, description, status, created_at FROM orders WHERE 1=1`
+	var args []interface{}
 
-	rows, err := m.DB.Query(stmt)
+	// Если передан статус, добавляем фильтр
+	if status != "" {
+		stmt += " AND status = ?"
+		args = append(args, status)
+	}
+
+	// Если передан ID для поиска
+	if searchID != "" {
+		stmt += " AND id = ?"
+		args = append(args, searchID)
+	}
+
+	stmt += " ORDER BY created_at DESC LIMIT 50"
+
+	rows, err := m.DB.Query(stmt, args...)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
 
 	var orders []*Order
-
 	for rows.Next() {
 		o := &Order{}
 		err = rows.Scan(&o.ID, &o.CustomerName, &o.DeviceName, &o.Description, &o.Status, &o.CreatedAt)
@@ -64,7 +78,6 @@ func (m *OrderModel) Latest() ([]*Order, error) {
 		}
 		orders = append(orders, o)
 	}
-
 	return orders, nil
 }
 
@@ -73,5 +86,11 @@ func (m *OrderModel) UpdateStatus(id int, status string) error {
 	stmt := `UPDATE orders SET status = ? WHERE id = ?`
 
 	_, err := m.DB.Exec(stmt, status, id)
+	return err
+}
+
+func (m *OrderModel) Delete(id int) error {
+	stmt := `DELETE FROM orders WHERE id = ?`
+	_, err := m.DB.Exec(stmt, id)
 	return err
 }
