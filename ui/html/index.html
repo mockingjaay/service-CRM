@@ -44,7 +44,7 @@
             <div class="card custom-card mb-4">
                 <div class="card-body">
                     <h6 class="text-uppercase text-muted small fw-bold mb-3">Быстрое добавление</h6>
-                    <form action="/order/create" method="POST" class="row g-2">
+                    <form hx-post="/order/create" hx-target="#order-table" hx-select="#order-table" hx-swap="innerHTML" class="row g-2">
                         <div class="col-md-3">
                             <input type="text" name="customer_name" class="form-control" placeholder="Клиент" required>
                         </div>
@@ -106,12 +106,20 @@
                                             </span>
                                         </td>
                                         <td class="text-end">
-                                            <div class="btn-group">
-                                                <a href="/order/status?id={{.ID}}&status=в работе" class="btn btn-action" title="В работу">🚀</a>
-                                                <a href="/order/status?id={{.ID}}&status=завершен" class="btn btn-action" title="Завершить">✅</a>
-                                                <a href="/order/delete?id={{.ID}}" class="btn btn-action text-danger" onclick="return confirm('Удалить?')">🗑️</a>
+                                            <div class="d-flex justify-content-end gap-2">
+                                                <a href="/order/status?id={{.ID}}&status=в работе" class="btn btn-action-text btn-work">
+                                                    В работу
+                                                </a>
+                                                <a href="/order/status?id={{.ID}}&status=завершен" class="btn btn-action-text btn-done">
+                                                    Завершить
+                                                </a>
+                                                <a href="/order/delete?id={{.ID}}" 
+                                                class="btn btn-action-text btn-delete" 
+                                                onclick="return confirm('Удалить заказ?')">
+                                                    Удалить
+                                                </a>
                                             </div>
-                                        </td>
+                                    </td>
                                     </tr>
                                     {{end}}
                                 </tbody>
@@ -131,17 +139,26 @@
 </div>
 
 <script>
-    // Починка кнопки меню
     document.addEventListener('DOMContentLoaded', function() {
-        const btn = document.getElementById('sidebarCollapse');
-        const sidebar = document.getElementById('sidebar');
-        const content = document.getElementById('content');
+    const btn = document.getElementById('sidebarCollapse');
+    const sidebar = document.getElementById('sidebar');
+    const content = document.getElementById('content');
 
-        btn.addEventListener('click', function() {
-            sidebar.classList.toggle('active');
-            content.classList.toggle('active');
-        });
+    // 1. Проверяем, было ли меню скрыто ранее
+    if (localStorage.getItem('sidebar-hidden') === 'true') {
+        sidebar.classList.add('active');
+        content.classList.add('active');
+    }
+
+    btn.addEventListener('click', function() {
+        sidebar.classList.toggle('active');
+        content.classList.toggle('active');
+        
+        // 2. Сохраняем выбор пользователя
+        const isHidden = sidebar.classList.contains('active');
+        localStorage.setItem('sidebar-hidden', isHidden);
     });
+});
 </script>
 
 </body>

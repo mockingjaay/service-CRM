@@ -1,9 +1,9 @@
 :root {
-    --bg: #f8f9fa;
-    --sidebar-bg: #1e2125;
+    --bg: #f0f2f5;             /* Чуть более холодный фон для чистоты */
+    --sidebar-bg: #1a1d21;
     --accent: #d4a271;
-    --card-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
-    --text-main: #333;
+    --text-main: #2d3436;      /* Более глубокий цвет текста */
+    --white: #ffffff;
 }
 
 body {
@@ -49,11 +49,12 @@ body {
     border-left: 4px solid var(--accent);
 }
 
-/* Content */
+/* Фикс для контента: если сайдбар не скрыт, контент должен иметь отступ */
 #content {
     width: 100%;
     min-height: 100vh;
     transition: all 0.3s;
+    background-color: var(--bg);
 }
 
 .navbar {
@@ -73,6 +74,7 @@ body {
 /* Cards */
 .custom-card {
     border: none;
+    border: 1px solid #e3e8ee;
     border-radius: 12px;
     box-shadow: var(--card-shadow);
 }
@@ -99,11 +101,61 @@ body {
 .status-в\ работе { background: #fff3e0; color: #fd7e14; }
 .status-завершен { background: #e8f5e9; color: #198754; }
 
-/* Actions */
-.btn-action {
-    background: #f8f9fa;
-    border: 1px solid #dee2e6;
-    margin-left: 4px;
-    transition: 0.2s;
+/* Новые текстовые кнопки действий */
+.btn-action-text {
+    padding: 5px 12px;
+    font-size: 13px;
+    font-weight: 500;
+    text-decoration: none;
+    border-radius: 6px;
+    transition: all 0.2s ease;
+    display: inline-flex;
+    align-items: center;
+    border: 1px solid transparent;
 }
-.btn-action:hover { background: #e9ecef; }
+
+/* Состояние "В работу" */
+.btn-work {
+    color: #f57c00;
+    background-color: #fff3e0;
+}
+.btn-work:hover {
+    background-color: #f57c00;
+    color: #fff;
+}
+
+/* Состояние "Завершить" */
+.btn-done {
+    color: #388e3c;
+    background-color: #e8f5e9;
+}
+.btn-done:hover {
+    background-color: #388e3c;
+    color: #fff;
+}
+
+/* Кнопка "Удалить" */
+.btn-delete {
+    color: #d32f2f;
+    background-color: #ffebee;
+}
+.btn-delete:hover {
+    background-color: #d32f2f;
+    color: #fff;
+}
+
+/* Таблица: убираем лишние границы и добавляем отступы */
+.table thead th {
+    background-color: #f8f9fa;
+    text-transform: uppercase;
+    font-size: 11px;
+    letter-spacing: 0.5px;
+    color: #636e72;
+    border-bottom: 2px solid #edf2f7;
+}
+
+.table td {
+    padding: 16px 12px;
+    vertical-align: middle;
+    white-space: nowrap; /* Чтобы текст кнопок не переносился */
+}

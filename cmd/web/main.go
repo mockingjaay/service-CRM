@@ -21,6 +21,7 @@ type application struct {
 func main() {
 	// 1. Подключаемся к базе данных
 	db, err := sql.Open("sqlite", "repair.db")
+
 	if err != nil {
 		log.Fatal(err)
 	}

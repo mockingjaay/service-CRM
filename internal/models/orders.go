@@ -7,12 +7,17 @@ import (
 
 // Order описывает структуру заказа в нашей CRM
 type Order struct {
-	ID           int
-	CustomerName string
-	DeviceName   string
-	Description  string
-	Status       string
-	CreatedAt    time.Time
+	ID             int
+	CustomerName   string
+	DeviceName     string
+	Description    string
+	Status         string
+	CreatedAt      time.Time
+	DeviceModel    string
+	Appearance     string
+	Password       string
+	Equipment      string
+	EstimatedPrice float64
 }
 
 // OrderModel определяет объект, который будет работать с БД
