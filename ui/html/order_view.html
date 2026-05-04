@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Заказ #{{.ID}} - Repair CRM</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="/static/css/styles.css">
+    <style>
+        /* Стили только для печати */
+        @media print {
+            #sidebar, .navbar, .btn-print, .btn-back { display: none !important; }
+            .card { border: none !important; box-shadow: none !important; }
+            body { background: white; }
+            .container-fluid { padding: 0; }
+        }
+    </style>
+</head>
+<body>
+<div class="wrapper">
+    <!-- Тот же Sidebar что и на главной -->
+    
+    <div id="content">
+        <nav class="navbar px-4 d-flex justify-content-between">
+            <div>
+                <a href="/" class="btn btn-outline-secondary btn-back me-2">← Назад</a>
+                <span class="fw-bold">Детали заказа #{{.ID}}</span>
+            </div>
+            <button onclick="window.print()" class="btn btn-accent btn-print">🖨️ Печать квитанции</button>
+        </nav>
+
+        <div class="container-fluid py-4">
+            <div class="row">
+                <!-- Левая колонка: Основное -->
+                <div class="col-md-8">
+                    <div class="card custom-card mb-4">
+                        <div class="card-body">
+                            <h5 class="mb-4 text-accent">Информация об устройстве</h5>
+                            <div class="row g-3">
+                                <div class="col-6">
+                                    <label class="text-muted small">Клиент</label>
+                                    <p class="fw-medium border-bottom pb-2">{{.CustomerName}}</p>
+                                </div>
+                                <div class="col-6">
+                                    <label class="text-muted small">Устройство / Модель</label>
+                                    <p class="fw-medium border-bottom pb-2">{{.DeviceName}} {{.DeviceModel}}</p>
+                                </div>
+                                <div class="col-12">
+                                    <label class="text-muted small">Заявленная неисправность</label>
+                                    <p class="p-3 bg-light rounded">{{.Description}}</p>
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="text-muted small">Внешний вид</label>
+                                    <p class="border-bottom pb-2 italic text-muted">{{if .Appearance}}{{.Appearance}}{{else}}Не указано{{end}}</p>
+                                </div>
+                                <div class="col-md-3">
+                                    <label class="text-muted small">Пароль / Код</label>
+                                    <p class="border-bottom pb-2 fw-bold text-danger">{{if .Password}}{{.Password}}{{else}}Нет{{end}}</p>
+                                </div>
+                                <div class="col-md-3">
+                                    <label class="text-muted small">Комплект</label>
+                                    <p class="border-bottom pb-2">{{if .Equipment}}{{.Equipment}}{{else}}Только устройство{{end}}</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Правая колонка: Статус и Цена -->
+                <div class="col-md-4">
+                    <div class="card custom-card mb-4">
+                        <div class="card-body text-center">
+                            <h6 class="text-muted mb-3">Текущий статус</h6>
+                            <span class="status-badge status-{{.Status}} d-block mb-4" style="font-size: 1.1rem; padding: 10px;">
+                                {{.Status}}
+                            </span>
+                            
+                            <h6 class="text-muted mb-2">Стоимость работ</h6>
+                            <h3 class="fw-bold mb-4">{{.EstimatedPrice}} ₽</h3>
+                            
+                            <hr>
+                            <p class="small text-muted mt-3">
+                                При печати квитанции убедитесь, что в настройках печати включены "Фоновые рисунки" для отображения статусов.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- Блок для печати (Гарантийный талон) -->
+<div class="d-none d-print-block mt-5 pt-5 border-top">
+    <div class="row">
+        <div class="col-12">
+            <h4 class="text-center mb-4">ГАРАНТИЙНЫЙ ТАЛОН</h4>
+            <p><strong>Условия гарантии:</strong></p>
+            <ul>
+                <li>Гарантия на выполненные работы составляет **2 недели**.</li>
+                <li>Гарантия распространяется только на замененные детали и узлы.</li>
+                <li>Гарантия аннулируется при наличии следов вскрытия, механических повреждений или попадания влаги после выдачи.</li>
+            </ul>
+        </div>
+    </div>
+    
+    <div class="row mt-4">
+        <div class="col-6">
+            <p>Дата выдачи: <strong>{{.PrintDate}}</strong></p>
+            <p>Гарантия до: <strong>{{.WarrantyDate}}</strong></p>
+        </div>
+        <div class="col-6 text-end">
+            <br>
+            <p>М.П. ________________ (подпись мастера)</p>
+        </div>
+    </div>
+</div>
+</body>
+</html>

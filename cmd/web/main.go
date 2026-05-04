@@ -4,48 +4,71 @@ import (
 	"database/sql"
 	"log"
 	"net/http"
-	"repair-crm/internal/models" // Замени на путь из своего go.mod
 	"strconv"
 	"text/template"
+	"time"
+
+	"repair-crm/internal/models" // Проверь, что структура Order там есть
 
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
 	_ "modernc.org/sqlite"
 )
 
-// Создаем структуру для хранения зависимостей приложения
+// Оставляем здесь, если в internal/models ее нет.
+// Если есть — удали этот блок и используй models.Order
+type Order struct {
+	ID             int
+	CustomerName   string
+	DeviceName     string
+	Description    string
+	Status         string
+	DeviceModel    string
+	Appearance     string
+	Password       string
+	Equipment      string
+	EstimatedPrice float64
+}
+
 type application struct {
 	orders *models.OrderModel
 }
 
-func main() {
-	// 1. Подключаемся к базе данных
-	db, err := sql.Open("sqlite", "repair.db")
+var db *sql.DB // Глобальная переменная для БД
 
+func main() {
+	var err error
+	// Инициализируем ГЛОБАЛЬНУЮ db (без :=)
+	db, err = sql.Open("sqlite", "repair.db")
 	if err != nil {
 		log.Fatal(err)
 	}
 	defer db.Close()
 
-	// 2. Инициализируем зависимости (нашу структуру application)
+	// Проверка соединения
+	if err = db.Ping(); err != nil {
+		log.Fatal("БД недоступна:", err)
+	}
+
 	app := &application{
 		orders: &models.OrderModel{DB: db},
 	}
 
-	// 3. Настраиваем роутер
 	r := chi.NewRouter()
-	r.Use(middleware.Logger) // Добавляет логирование запросов в консоль
+	r.Use(middleware.Logger)
+	r.Use(middleware.Recoverer)
 
+	// Статика
 	fileServer := http.FileServer(http.Dir("./ui/static/"))
 	r.Handle("/static/*", http.StripPrefix("/static", fileServer))
 
-	// 4. Описываем маршруты (routes)
-	r.Get("/", app.homeHandler) // Показать главную с формой
+	// МАРШРУТЫ
+	r.Get("/", app.homeHandler)
+	r.Post("/order/create", app.createOrderHandler)
+	r.Get("/order/view", app.viewOrderHandler) // Теперь через r.Get
 	r.Get("/order/status", app.updateStatusHandler)
 	r.Get("/order/delete", app.deleteOrderHandler)
-	r.Post("/order/create", app.createOrderHandler) // Обработать отправку формы
 
-	// 5. Запускаем сервер
 	log.Println("Сервер запущен на http://localhost:8080")
 	err = http.ListenAndServe(":8080", r)
 	if err != nil {
@@ -81,27 +104,33 @@ func (app *application) homeHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func (app *application) createOrderHandler(w http.ResponseWriter, r *http.Request) {
-	// 1. Парсим данные из формы
-	err := r.ParseForm()
-	if err != nil {
-		http.Error(w, "Bad Request", 400)
-		return
+	if r.Method == http.MethodPost {
+		// Читаем старые поля
+		name := r.FormValue("customer_name")
+		device := r.FormValue("device_name")
+		desc := r.FormValue("description")
+
+		// Читаем НОВЫЕ поля
+		model := r.FormValue("device_model")
+		appearance := r.FormValue("appearance")
+		password := r.FormValue("password")
+		equipment := r.FormValue("equipment")
+		price := r.FormValue("estimated_price")
+
+		// Записываем в базу (добавь новые колонки в свой SQL INSERT)
+		query := `INSERT INTO orders 
+                  (customer_name, device_name, description, status, device_model, appearance, password, equipment, estimated_price) 
+                  VALUES (?, ?, ?, 'новый', ?, ?, ?, ?, ?)`
+
+		_, err := db.Exec(query, name, device, desc, model, appearance, password, equipment, price)
+		if err != nil {
+			http.Error(w, err.Error(), 500)
+			return
+		}
+
+		// Редирект или HTMX ответ
+		http.Redirect(w, r, "/", 303)
 	}
-
-	// 2. Достаем значения по именам полей из HTML
-	customer := r.PostForm.Get("customer_name")
-	device := r.PostForm.Get("device_name")
-	description := r.PostForm.Get("description")
-
-	// 3. Сохраняем в базу данных через нашу модель
-	_, err = app.orders.Insert(customer, device, description)
-	if err != nil {
-		http.Error(w, "Ошибка сохранения", 500)
-		return
-	}
-
-	// 4. Перенаправляем пользователя обратно на главную страницу
-	http.Redirect(w, r, "/", http.StatusSeeOther)
 }
 
 func (app *application) updateStatusHandler(w http.ResponseWriter, r *http.Request) {
@@ -142,4 +171,46 @@ func (app *application) deleteOrderHandler(w http.ResponseWriter, r *http.Reques
 	}
 
 	http.Redirect(w, r, "/", http.StatusSeeOther)
+}
+
+func (app *application) viewOrderHandler(w http.ResponseWriter, r *http.Request) {
+	idStr := r.URL.Query().Get("id")
+
+	var o Order
+	query := `SELECT id, customer_name, device_name, description, status, 
+                     device_model, appearance, password, equipment, estimated_price 
+              FROM orders WHERE id = ?`
+
+	// Используем db напрямую или app.orders.DB
+	err := db.QueryRow(query, idStr).Scan(
+		&o.ID, &o.CustomerName, &o.DeviceName, &o.Description, &o.Status,
+		&o.DeviceModel, &o.Appearance, &o.Password, &o.Equipment, &o.EstimatedPrice,
+	)
+
+	if err != nil {
+		log.Println("Ошибка при поиске заказа:", err)
+		http.Error(w, "Заказ не найден", 404)
+		return
+	}
+
+	ts, err := template.ParseFiles("./ui/html/order_view.html")
+	if err != nil {
+		http.Error(w, "Шаблон не найден", 500)
+		return
+	}
+	ts.Execute(w, o)
+
+	// Готовим даты
+	now := time.Now()
+	warrantyUntil := now.AddDate(0, 0, 14) // Плюс 2 недели
+
+	// Передаем всё в шаблон через карту (map)
+	data := map[string]interface{}{
+		"Order":        o,
+		"PrintDate":    now.Format("02.01.2006"),
+		"WarrantyDate": warrantyUntil.Format("02.01.2006"),
+	}
+
+	tmpl, _ := template.ParseFiles("ui/html/order_view.html")
+	tmpl.Execute(w, data)
 }

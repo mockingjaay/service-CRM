@@ -44,18 +44,45 @@
             <div class="card custom-card mb-4">
                 <div class="card-body">
                     <h6 class="text-uppercase text-muted small fw-bold mb-3">Быстрое добавление</h6>
-                    <form hx-post="/order/create" hx-target="#order-table" hx-select="#order-table" hx-swap="innerHTML" class="row g-2">
+                    <form hx-post="/order/create" hx-target="#order-table" hx-select="#order-table" hx-swap="innerHTML" hx-on::after-request="this.reset()" class="row g-2">
+                        <!-- Основные поля -->
                         <div class="col-md-3">
                             <input type="text" name="customer_name" class="form-control" placeholder="Клиент" required>
                         </div>
                         <div class="col-md-3">
-                            <input type="text" name="device_name" class="form-control" placeholder="Устройство" required>
+                            <input type="text" name="device_name" class="form-control" placeholder="Устройство (н-р, iPhone)" required>
                         </div>
                         <div class="col-md-4">
-                            <input type="text" name="description" class="form-control" placeholder="Что сломалось?" required>
+                            <input type="text" name="description" class="form-control" placeholder="Описание поломки" required>
                         </div>
                         <div class="col-md-2">
                             <button type="submit" class="btn btn-accent w-100">Создать</button>
+                        </div>
+
+                        <!-- Кнопка раскрытия доп. полей -->
+                        <div class="col-12 mt-1">
+                            <a class="text-muted small text-decoration-none" style="cursor: pointer;" data-bs-toggle="collapse" data-bs-target="#extraFields">
+                                ➕ Дополнительные данные (модель, пароль, цена)
+                            </a>
+                        </div>
+
+                        <!-- Скрытый блок с новыми полями -->
+                        <div class="collapse row g-2 mt-2" id="extraFields">
+                            <div class="col-md-3">
+                                <input type="text" name="device_model" class="form-control form-control-sm" placeholder="Точная модель (н-р, 13 Pro Max)">
+                            </div>
+                            <div class="col-md-2">
+                                <input type="text" name="password" class="form-control form-control-sm" placeholder="Пароль/Код">
+                            </div>
+                            <div class="col-md-3">
+                                <input type="text" name="appearance" class="form-control form-control-sm" placeholder="Внешний вид (царапины)">
+                            </div>
+                            <div class="col-md-2">
+                                <input type="text" name="equipment" class="form-control form-control-sm" placeholder="Комплект">
+                            </div>
+                            <div class="col-md-2">
+                                <input type="number" name="estimated_price" class="form-control form-control-sm" placeholder="Цена">
+                            </div>
                         </div>
                     </form>
                 </div>
@@ -96,7 +123,7 @@
                                 <tbody>
                                     {{range .}}
                                     <tr>
-                                        <td><span class="text-muted small">#{{.ID}}</span></td>
+                                        <td><a href="/order/view?id={{.ID}}" class="fw-bold text-accent text-decoration-none">#{{.ID}}</a></td>
                                         <td class="fw-medium">{{.CustomerName}}</td>
                                         <td>{{.DeviceName}}</td>
                                         <td class="text-truncate" style="max-width: 200px;">{{.Description}}</td>
@@ -134,6 +161,32 @@
                 </div>
             </div>
 
+        </div>
+    </div>
+</div>
+
+<!-- Блок для печати (Гарантийный талон) -->
+<div class="d-none d-print-block mt-5 pt-5 border-top">
+    <div class="row">
+        <div class="col-12">
+            <h4 class="text-center mb-4">ГАРАНТИЙНЫЙ ТАЛОН</h4>
+            <p><strong>Условия гарантии:</strong></p>
+            <ul>
+                <li>Гарантия на выполненные работы составляет **2 недели**.</li>
+                <li>Гарантия распространяется только на замененные детали и узлы.</li>
+                <li>Гарантия аннулируется при наличии следов вскрытия, механических повреждений или попадания влаги после выдачи.</li>
+            </ul>
+        </div>
+    </div>
+    
+    <div class="row mt-4">
+        <div class="col-6">
+            <p>Дата выдачи: <strong>{{.PrintDate}}</strong></p>
+            <p>Гарантия до: <strong>{{.WarrantyDate}}</strong></p>
+        </div>
+        <div class="col-6 text-end">
+            <br>
+            <p>М.П. ________________ (подпись мастера)</p>
         </div>
     </div>
 </div>
